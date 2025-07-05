@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Data Penduduk</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+      max-width: 960px;
+      margin: auto;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px #ccc;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    td button {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Form Pendataan Penduduk</h1>
+
+  <form id="formPenduduk">
+    <input type="text" id="nama" placeholder="Nama Lengkap" required />
+    <input type="text" id="nik" placeholder="NIK" required />
+    <input type="text" id="kk" placeholder="Nomor KK" required />
+
+    <select id="jk" required>
+      <option value="">-- Pilih Jenis Kelamin --</option>
+      <option value="Laki-laki">Laki-laki</option>
+      <option value="Perempuan">Perempuan</option>
+    </select>
+
+    <select id="agama" required>
+      <option value="">-- Pilih Agama --</option>
+      <option value="Islam">Islam</option>
+      <option value="Kristen">Kristen</option>
+      <option value="Katolik">Katolik</option>
+      <option value="Hindu">Hindu</option>
+      <option value="Budha">Budha</option>
+      <option value="Konghucu">Konghucu</option>
+    </select>
+
+    <input type="text" id="tempat_lahir" placeholder="Tempat Lahir" required />
+    <input type="date" id="tanggal_lahir" required />
+
+    <input type="text" id="dusun" placeholder="Dusun" required />
+    <input type="text" id="pekerjaan" placeholder="Pekerjaan" required />
+    <input type="text" id="alamat" placeholder="Alamat Lengkap" required />
+
+    <button type="submit">Simpan Data</button>
+  </form>
+
+  <h2>Daftar Penduduk</h2>
+
+  <table id="tabelPenduduk">
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Nama</th>
+        <th>NIK</th>
+        <th>KK</th>
+        <th>JK</th>
+        <th>Agama</th>
+        <th>Tempat Lahir</th>
+        <th>Tanggal Lahir</th>
+        <th>Dusun</th>
+        <th>Pekerjaan</th>
+        <th>Alamat</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button onclick="exportCSV()">Export ke CSV</button>
+
+  <script>
+    const form = document.getElementById('formPenduduk');
+    const tabelBody = document.querySelector('#tabelPenduduk tbody');
+    let dataPenduduk = [];
+
+    if (localStorage.getItem('dataPenduduk')) {
+      dataPenduduk = JSON.parse(localStorage.getItem('dataPenduduk'));
+      tampilkanData();
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const indexEdit = form.getAttribute('data-edit-index');
+
+      const nama = document.getElementById('nama').value;
+      const nik = document.getElementById('nik').value;
+      const kk = document.getElementById('kk').value;
+      const jk = document.getElementById('jk').value;
+      const agama = document.getElementById('agama').value;
+      const tempat_lahir = document.getElementById('tempat_lahir').value;
+      const tanggal_lahir = document.getElementById('tanggal_lahir').value;
+      const dusun = document.getElementById('dusun').value;
+      const pekerjaan = document.getElementById('pekerjaan').value;
+      const alamat = document.getElementById('alamat').value;
+
+      const dataBaru = {
+        nama, nik, kk, jk, agama, tempat_lahir, tanggal_lahir, dusun, pekerjaan, alamat
+      };
+
+      if (indexEdit !== null) {
+        dataPenduduk[indexEdit] = dataBaru;
+        form.removeAttribute('data-edit-index');
+      } else {
+        dataPenduduk.push(dataBaru);
+      }
+
+      localStorage.setItem('dataPenduduk', JSON.stringify(dataPenduduk));
+      tampilkanData();
+      form.reset();
+    });
+
+    function tampilkanData() {
+      tabelBody.innerHTML = '';
+      dataPenduduk.forEach((data, index) => {
+        const row = `<tr>
+          <td>${index + 1}</td>
+          <td>${data.nama}</td>
+          <td>${data.nik}</td>
+          <td>${data.kk}</td>
+          <td>${data.jk}</td>
+          <td>${data.agama}</td>
+          <td>${data.tempat_lahir}</td>
+          <td>${data.tanggal_lahir}</td>
+          <td>${data.dusun}</td>
+          <td>${data.pekerjaan}</td>
+          <td>${data.alamat}</td>
+          <td>
+            <button onclick="editData(${index})">Edit</button>
+            <button onclick="hapusData(${index})">Hapus</button>
+          </td>
+        </tr>`;
+        tabelBody.innerHTML += row;
+      });
+    }
+
+    function hapusData(index) {
+      if (confirm("Yakin ingin menghapus data ini?")) {
+        dataPenduduk.splice(index, 1);
+        localStorage.setItem('dataPenduduk', JSON.stringify(dataPenduduk));
+        tampilkanData();
+      }
+    }
+
+    function editData(index) {
+      const data = dataPenduduk[index];
+      document.getElementById('nama').value = data.nama;
+      document.getElementById('nik').value = data.nik;
+      document.getElementById('kk').value = data.kk;
+      document.getElementById('jk').value = data.jk;
+      document.getElementById('agama').value = data.agama;
+      document.getElementById('tempat_lahir').value = data.tempat_lahir;
+      document.getElementById('tanggal_lahir').value = data.tanggal_lahir;
+      document.getElementById('dusun').value = data.dusun;
+      document.getElementById('pekerjaan').value = data.pekerjaan;
+      document.getElementById('alamat').value = data.alamat;
+
+      form.setAttribute('data-edit-index', index);
+    }
+
+    function exportCSV() {
+      if (dataPenduduk.length === 0) {
+        alert("Data kosong.");
+        return;
+      }
+
+      const header = [
+        "Nama", "NIK", "KK", "JK", "Agama", "Tempat Lahir", "Tanggal Lahir",
+        "Dusun", "Pekerjaan", "Alamat"
+      ];
+      const rows = dataPenduduk.map(d => [
+        d.nama, d.nik, d.kk, d.jk, d.agama, d.tempat_lahir, d.tanggal_lahir,
+        d.dusun, d.pekerjaan, d.alamat
+      ]);
+
+      let csvContent = "data:text/csv;charset=utf-8," +
+        [header, ...rows].map(e => e.join(",")).join("\n");
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "data_penduduk.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+
+</body>
+</html>
